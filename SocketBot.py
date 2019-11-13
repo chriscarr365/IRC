@@ -1,6 +1,7 @@
 import socket
 import select
 import errno
+import time
 
 HEADER_LEN = 10
 
@@ -50,6 +51,8 @@ def main():
 
                 if message.__contains__('!'):
                     reply(message[1:])
+                elif message.__contains__('ChatBot'):
+                    sendMessage("Yo")
 
 
         except IOError as e:
@@ -69,23 +72,55 @@ def main():
             print('Reading error: '.format(str(e)))
             sys.exit()  
 
-def one():
-    print ('this is function 1')
+def sendTime():
+    output = "The time is..."
+    print(output)
+    sendMessage(output)
 
-def two():
-    print ('this is function 2')
+def sendDate():
+    output = "The date is..."
+    print(output)
+    sendMessage(output)
 
 def reply(s):
     # Print message
-    print(f'{s}')
+    print(f'Command was !{s}')
 
     switcher = {
-        '1': one,
-        '2': two
+        'time': sendTime,
+        'date': sendDate
     }
 
     # Get the function from switcher dictionary
     func = switcher.get(s)
-    func()
+    try:
+        func()
+    except Exception as e:
+        sendMessage('Thats not a valid command')
+
+def sendMessage(message):
+    # Send message if not empty
+    if message:
+        time.sleep(.5)
+        # Encode message to bytes, prepare header and convert to bytes, like for username above, then send
+        message = message.encode('utf-8')
+        message_header = f"{len(message):<{HEADER_LEN}}".encode('utf-8')
+        client_socket.send(message_header + message)
 
 main()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
