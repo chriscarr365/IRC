@@ -1,5 +1,6 @@
 import socket
 import select
+import threading
 
 HEADER_LENGTH = 10
 
@@ -124,11 +125,11 @@ while True:
             for client_socket in clients:
 
                 # But don't sent it to sender
-                if client_socket != notified_socket:
+                #if client_socket != notified_socket:
 
-                    # Send user and message (both with their headers)
-                    # We are reusing here message header sent by sender, and saved username header send by user when he connected
-                    client_socket.send(user['header'] + user['data'] + message['header'] + message['data'])
+                # Send user and message (both with their headers)
+                # We are reusing here message header sent by sender, and saved username header send by user when he connected
+                client_socket.send(user['header'] + user['data'] + message['header'] + message['data'])
 
     # It's not really necessary to have this, but will handle some socket exceptions just in case
     for notified_socket in exception_sockets:
@@ -138,3 +139,91 @@ while True:
 
         # Remove from our list of users
         del clients[notified_socket]
+
+
+#Class for Channel Thread, connect to channel and interact with channel
+class ChannelThread(threading.Thread):
+    #Initialise fields
+    def __init__(self):
+        threading.Thread.__init__(self)
+        self.clients = []       #clients connected to Channel
+        # Create a socket
+
+        # socket.AF_INET - address family, IPv4, some otehr possible are AF_INET6, AF_BLUETOOTH, AF_UNIX
+        # socket.SOCK_STREAM - TCP, conection-based, socket.SOCK_DGRAM - UDP, connectionless, datagrams, socket.SOCK_RAW - raw IP packets
+        self.channel_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+
+        # Bind, so server informs operating system that it's going to use given IP and port
+        # For a server using 0.0.0.0 means to listen on all available interfaces, useful to connect locally to 127.0.0.1 and remotely to LAN interface IP
+        self.channel_socket.bind(('',0))
+
+        _, self.port = self.channel_socket.getsockname()
+
+        # This makes server listen to new connections
+        self.channel_socket.listen()    #for normal channels unlimited number of connections
+
+
+        self.daemon=True
+        self.start()
+
+    #connect new client to channel
+    def connect(self):
+        while True:
+            client = self.channel_socket.accept()
+            if not client:
+                break
+            #add client to list of clients who can use channel
+            self.clients.append(client)
+
+    #def recievemsg(self):
+    #for all clients in  the network, output message
+    #Maybe use Recieve message from above as static and change socket details to channel sockets.
+
+#Class for Channel, create channel and set up connection
+class Channel(threading.Thread):
+    #initialise fields
+    def __init__(self):
+        threading.Thread.__init__(self)
+
+        self.daemon = True
+        self.channel_thread = ChannelThread()
+
+
+    #address where 
+    def public_address(self):
+        return "tcp://%s:%d" % (socket.gethostname(), self.channel_thread.port)
+
+    def register(self, channel_address, update_callback):
+        host, s_port = channel_address.split("//")[-1].split(":")
+        port = int(s_port)
+        self.peer_chan_sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+        self.peer_chan_sock.connect((host, port))
+        self._callback = update_callback
+        self.start()
+
+    def deal_with_message(self, msg):
+        self._callback(msg)
+
+    def run(self):
+        data = ""
+        while True:
+            new_data = self.peer_chan_sock.recv(1024)
+            if not new_data:
+            # connection reset by peer
+                break
+            data += new_data
+            msgs = data.split("\n\n")
+            if msgs[-1]:
+                data = msgs.pop()
+            for msg in msgs:
+                self.deal_with_message(msg)
+
+    def send_value(self, channel_value):
+        self.channel_thread.sendall("%s\n\n" % channel_value)
+
+
+
+#def privateMessage():  create channel between 2 people and limit channel to 2
+#def connectChannel():
+#def createChannel():
+#def getChannel():
