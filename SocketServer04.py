@@ -7,12 +7,6 @@ HEADER_LENGTH = 10
 IP = "127.0.0.1"
 PORT = 1234
 
-#dictionary for channels
-channels = {
-    "channel1": [clients],
-    "channel2": [clients],
-    "channel3": [clients]
-}
 
 
 # Create a socket
@@ -37,6 +31,12 @@ sockets_list = [server_socket]
 
 # List of connected clients - socket as a key, user header and name as data
 clients = {}
+#dictionary for channels
+channels = {
+    "channel1": [clients],
+    "channel2": [clients],
+    "channel3": [clients]
+}
 
 print(f'Listening for connections on {IP}:{PORT}...')
 
