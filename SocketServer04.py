@@ -7,6 +7,14 @@ HEADER_LENGTH = 10
 IP = "127.0.0.1"
 PORT = 1234
 
+#dictionary for channels
+channels = {
+    "channel1": [clients],
+    "channel2": [clients],
+    "channel3": [clients]
+}
+
+
 # Create a socket
 # socket.AF_INET - address family, IPv4, some otehr possible are AF_INET6, AF_BLUETOOTH, AF_UNIX
 # socket.SOCK_STREAM - TCP, conection-based, socket.SOCK_DGRAM - UDP, connectionless, datagrams, socket.SOCK_RAW - raw IP packets
@@ -119,10 +127,34 @@ while True:
             # Get user by notified socket, so we will know who sent the message
             user = clients[notified_socket]
 
+            #InChannel = FALSE
+            #CurrChannel = ""
+            #if message contains !join for join channel function, join channel and only update channel with messages
+            #if message.__contains__('!join'):
+                #reply(message[1:])
+                #FOR CHANNELS IN CHANNEL DICTIONARY:
+                    #IF CHANNEL EXISTS:
+                        #InChannel = TRUE
+                        #CurrChannel = CHANNEL
+                        #APPEND CLIENT TO CHANNEL DICTIONARY
+                    #ELSE CREATE CHANNEL
+                        #InChannel = TRUE
+                        #ADD ENTRY TO CHANNEL DICTIONARY, CHANNEL AS KEY;CLIENT AS AN ENTRY IN LIST
+                        #CurrChannel = CHANNEL
+
+            #IF InChannel = TRUE:
+                #SEND MESSAGE TO ALL CLIENTS IN CurrChannel DICTIONARY
+            #ELSE SEND TO EVERYONE
+
             print(f'Received message from {user["data"].decode("utf-8")}: {message["data"].decode("utf-8")}')
 
             # Iterate over connected clients and broadcast message
             for client_socket in clients:
+##################################################DIRECT MESSAGE####################################################
+                if "data".startswith("@"):
+                    clients["data"[1:"data".index(':')].lower()].send("data"["data".index(':') + 1:])
+                    print(f'recieved direct message to...') #PRINT TO ONLY INTENDED
+##################################################DIRECT MESSAGE#####################################################
 
                 # But don't sent it to sender
                 #if client_socket != notified_socket:
@@ -155,7 +187,7 @@ class ChannelThread(threading.Thread):
 
         # Bind, so server informs operating system that it's going to use given IP and port
         # For a server using 0.0.0.0 means to listen on all available interfaces, useful to connect locally to 127.0.0.1 and remotely to LAN interface IP
-        self.channel_socket.bind(('',0))
+        self.channel_socket.bind(('127.0.0.1',1234))
 
         _, self.port = self.channel_socket.getsockname()
 
@@ -175,7 +207,7 @@ class ChannelThread(threading.Thread):
             #add client to list of clients who can use channel
             self.clients.append(client)
 
-    #def recievemsg(self):
+    #def sendMsg(self):
     #for all clients in  the network, output message
     #Maybe use Recieve message from above as static and change socket details to channel sockets.
 
@@ -188,21 +220,23 @@ class Channel(threading.Thread):
         self.daemon = True
         self.channel_thread = ChannelThread()
 
+    #register and connect to channel socket
+    #update_callback
+    #return "tcp://%s:%d" % (socket.gethostname(), self.channel_thread.port)
+    def getAddress(self):
+        host = socket.gethostname()
+        port = self.channel_thread.port
+        return host, port
 
-    #address where 
-    def public_address(self):
-        return "tcp://%s:%d" % (socket.gethostname(), self.channel_thread.port)
-
-    def register(self, channel_address, update_callback):
-        host, s_port = channel_address.split("//")[-1].split(":")
-        port = int(s_port)
+    def register(self, host, port):
         self.peer_chan_sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         self.peer_chan_sock.connect((host, port))
-        self._callback = update_callback
+        #self._callback = update_callback
         self.start()
 
-    def deal_with_message(self, msg):
-        self._callback(msg)
+    #def deal_with_message(self, msg):
+        #self._callback(msg)
+
 
     def run(self):
         data = ""
@@ -222,7 +256,12 @@ class Channel(threading.Thread):
         self.channel_thread.sendall("%s\n\n" % channel_value)
 
 
+def joinChannel():
+    channel = Channel()
 
+
+#IP "127.0.0.1"
+#Port 1234
 #def privateMessage():  create channel between 2 people and limit channel to 2
 #def connectChannel():
 #def createChannel():
