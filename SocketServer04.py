@@ -176,10 +176,19 @@ while True:
                     print(sockUname)
                     print("ZZZ")
 
+                    msgDataBytes = str.encode(msgData)
+
                     if msgTarget in sockUname:
                         # send to target
-                        client_socket.send(user['header'] + user['data'] + message['header'] + message['data'])
-                        print("FFFFFFFFFFFFFFFFFFF")  # tester
+                        target_socket.send(user['header'] + user['data'] + message['header'] + msgDataBytes)
+                        thead = {user["header"].decode("utf-8")}
+                        tdata = {user["data"].decode("utf-8")}
+                        t2head = {message["header"].decode("utf-8")}
+                        t2data = {message["data"].decode("utf-8")}
+                        print(thead)
+                        print(tdata)
+                        print(t2head)
+                        print(t2data)               # tester
                         break
             ##################################################################DIRECT MESSAGE####################################################################
 
