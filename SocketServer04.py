@@ -1,5 +1,6 @@
 import socket
 import select
+import threading
 
 HEADER_LENGTH = 10
 
@@ -28,12 +29,18 @@ sockets_list = [server_socket]
 
 # List of connected clients - socket as a key, user header and name as data
 clients = {}
+# dictionary for channels
+channels = {
+    "#General": [clients],
+    "#Memes": [clients],
+    "#Sports": [clients]
+}
 
 print(f'Listening for connections on {IP}:{PORT}...')
 
+
 # Handles message receiving
 def receive_message(client_socket):
-
     try:
 
         # Receive our "header" containing message length, it's size is defined and constant
@@ -57,6 +64,7 @@ def receive_message(client_socket):
         # and that's also a cause when we receive an empty message
         return False
 
+
 while True:
 
     # Calls Unix select() system call or Windows select() WinSock call with three parameters:
@@ -69,7 +77,6 @@ while True:
     #   - errors  - sockets with some exceptions
     # This is a blocking call, code execution will "wait" here and "get" notified in case any action should be taken
     read_sockets, _, exception_sockets = select.select(sockets_list, [], sockets_list)
-
 
     # Iterate over notified sockets
     for notified_socket in read_sockets:
@@ -95,7 +102,8 @@ while True:
             # Also save username and username header
             clients[client_socket] = user
 
-            print('Accepted new connection from {}:{}, username: {}'.format(*client_address, user['data'].decode('utf-8')))
+            print('Accepted new connection from {}:{}, username: {}'.format(*client_address,
+                                                                            user['data'].decode('utf-8')))
 
         # Else existing socket is sending a message
         else:
@@ -118,28 +126,173 @@ while True:
             # Get user by notified socket, so we will know who sent the message
             user = clients[notified_socket]
 
+            # InChannel = FALSE
+            # CurrChannel = ""
+            # if message contains !join for join channel function, join channel and only update channel with messages
+            # if message.__contains__('!join'):
+            # reply(message[1:])
+            # FOR CHANNELS IN CHANNEL DICTIONARY:
+            # IF CHANNEL EXISTS:
+            # InChannel = TRUE
+            # CurrChannel = CHANNEL
+            # APPEND CLIENT TO CHANNEL DICTIONARY
+            # ELSE CREATE CHANNEL
+            # InChannel = TRUE
+            # ADD ENTRY TO CHANNEL DICTIONARY, CHANNEL AS KEY;CLIENT AS AN ENTRY IN LIST
+            # CurrChannel = CHANNEL
+
+            # IF InChannel = TRUE:
+            # SEND MESSAGE TO ALL CLIENTS IN CurrChannel DICTIONARY
+            # ELSE SEND TO EVERYONE
+
             print(f'Received message from {user["data"].decode("utf-8")}: {message["data"].decode("utf-8")}')
+
+            # initialise and setup direct messaging assigning variable to only the message data of message
+            directmessage = ""
+            directmessage = message["data"].decode("utf-8")
+
+            # tester
+            print(directmessage)
+
+            ##################################################################DIRECT MESSAGE###################################################################
+            if directmessage.startswith("@"):
+                msgTarget = ""
+                msgData = ""
+
+                # get target and msgdata
+                msgTarget, msgData = directmessage.split(' ', 1)
+
+                # remove @ from message target username
+                msgTarget = msgTarget.strip('@')
+
+                # clients["data"[1:"data".index(':')].lower()].send("data"["data".index(':') + 1:])
+                print(f'recieved direct message[' + "'" + msgData + "'" + '] to user: ' + msgTarget)  # PRINT
+                for target_socket in clients:
+                    user = clients[target_socket]
+                    sockUname = {user["data"].decode("utf-8")}
+
+                    # tester
+                    print("XXX")
+                    print(sockUname)
+                    print("ZZZ")
+
+                    if msgTarget in sockUname:
+                        # send to target
+                        client_socket.send(user['header'] + user['data'] + message['header'] + message['data'])
+                        print("FFFFFFFFFFFFFFFFFFF")  # tester
+                        break
+            ##################################################################DIRECT MESSAGE####################################################################
 
             # Iterate over connected clients and broadcast message
             for client_socket in clients:
-
+##################################################################DIRECT MESSAGE###################################################################
+                if directmessage.startswith("@"):
+                    print("TTTTTTTTTTTTTTTTTTTTTTTTT")
+                    break
+##################################################################DIRECT MESSAGE####################################################################
                 # But don't sent it to sender
-                #if client_socket != notified_socket:
-
-                # Send user and message (both with their headers)
-                # We are reusing here message header sent by sender, and saved username header send by user when he connected
-                client_socket.send(user['header'] + user['data'] + message['header'] + message['data'])
+                if client_socket != notified_socket:
+                    # Send user and message (both with their headers)
+                    # We are reusing here message header sent by sender, and saved username header send by user when he connected
+                    client_socket.send(user['header'] + user['data'] + message['header'] + message['data'])
 
     # It's not really necessary to have this, but will handle some socket exceptions just in case
     for notified_socket in exception_sockets:
-
         # Remove from list for socket.socket()
         sockets_list.remove(notified_socket)
 
         # Remove from our list of users
         del clients[notified_socket]
 
-#def privateMessage():
-#def connectChannel():
-#def createChannel():
-#def getChannel():
+
+# Class for Channel Thread, connect to channel and interact with channel
+class ChannelThread(threading.Thread):
+    # Initialise fields
+    def __init__(self):
+        threading.Thread.__init__(self)
+        self.clients = []  # clients connected to Channel
+        # Create a socket
+
+        # socket.AF_INET - address family, IPv4, some otehr possible are AF_INET6, AF_BLUETOOTH, AF_UNIX
+        # socket.SOCK_STREAM - TCP, conection-based, socket.SOCK_DGRAM - UDP, connectionless, datagrams, socket.SOCK_RAW - raw IP packets
+        self.channel_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        # Bind, so server informs operating system that it's going to use given IP and port
+        # For a server using 0.0.0.0 means to listen on all available interfaces, useful to connect locally to 127.0.0.1 and remotely to LAN interface IP
+        self.channel_socket.bind(('127.0.0.1', 1234))
+
+        _, self.port = self.channel_socket.getsockname()
+
+        # This makes server listen to new connections
+        self.channel_socket.listen()  # for normal channels unlimited number of connections
+
+        self.daemon = True
+        self.start()
+
+    # connect new client to channel
+    def connect(self):
+        while True:
+            client = self.channel_socket.accept()
+            if not client:
+                break
+            # add client to list of clients who can use channel
+            self.clients.append(client)
+
+    # def sendMsg(self):
+    # for all clients in  the network, output message
+    # Maybe use Recieve message from above as static and change socket details to channel sockets.
+
+
+# Class for Channel, create channel and set up connection
+class Channel(threading.Thread):
+    # initialise fields
+    def __init__(self):
+        threading.Thread.__init__(self)
+
+        self.daemon = True
+        self.channel_thread = ChannelThread()
+
+    # register and connect to channel socket
+    # update_callback
+    # return "tcp://%s:%d" % (socket.gethostname(), self.channel_thread.port)
+    def getAddress(self):
+        host = socket.gethostname()
+        port = self.channel_thread.port
+        return host, port
+
+    def register(self, host, port):
+        self.peer_chan_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.peer_chan_sock.connect((host, port))
+        # self._callback = update_callback
+        self.start()
+
+    # def deal_with_message(self, msg):
+    # self._callback(msg)
+
+    def run(self):
+        data = ""
+        while True:
+            new_data = self.peer_chan_sock.recv(1024)
+            if not new_data:
+                # connection reset by peer
+                break
+            data += new_data
+            msgs = data.split("\n\n")
+            if msgs[-1]:
+                data = msgs.pop()
+            for msg in msgs:
+                self.deal_with_message(msg)
+
+    def send_value(self, channel_value):
+        self.channel_thread.sendall("%s\n\n" % channel_value)
+
+
+def sendDM(client, message):
+    client.send(message)
+
+# IP "127.0.0.1"
+# Port 1234
+# def privateMessage():  create channel between 2 people and limit channel to 2
+# def connectChannel():
+# def createChannel():
+# def getChannel():
