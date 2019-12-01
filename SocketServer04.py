@@ -29,6 +29,7 @@ sockets_list = [server_socket]
 
 # List of connected clients - socket as a key, user header and name as data
 clients = {}
+
 # dictionary for channels
 channels = {
     "#General": [clients],
@@ -126,33 +127,12 @@ while True:
             # Get user by notified socket, so we will know who sent the message
             user = clients[notified_socket]
 
-            # InChannel = FALSE
-            # CurrChannel = ""
-            # if message contains !join for join channel function, join channel and only update channel with messages
-            # if message.__contains__('!join'):
-            # reply(message[1:])
-            # FOR CHANNELS IN CHANNEL DICTIONARY:
-            # IF CHANNEL EXISTS:
-            # InChannel = TRUE
-            # CurrChannel = CHANNEL
-            # APPEND CLIENT TO CHANNEL DICTIONARY
-            # ELSE CREATE CHANNEL
-            # InChannel = TRUE
-            # ADD ENTRY TO CHANNEL DICTIONARY, CHANNEL AS KEY;CLIENT AS AN ENTRY IN LIST
-            # CurrChannel = CHANNEL
-
-            # IF InChannel = TRUE:
-            # SEND MESSAGE TO ALL CLIENTS IN CurrChannel DICTIONARY
-            # ELSE SEND TO EVERYONE
-
             print(f'Received message from {user["data"].decode("utf-8")}: {message["data"].decode("utf-8")}')
 
             # initialise and setup direct messaging assigning variable to only the message data of message
             directmessage = ""
             directmessage = message["data"].decode("utf-8")
 
-            # tester
-            print(directmessage)
 
             ##################################################################DIRECT MESSAGE###################################################################
             if directmessage.startswith("@"):
@@ -171,24 +151,11 @@ while True:
                     user = clients[target_socket]
                     sockUname = {user["data"].decode("utf-8")}
 
-                    # tester
-                    print("XXX")
-                    print(sockUname)
-                    print("ZZZ")
-
                     msgDataBytes = str.encode(msgData)
 
                     if msgTarget in sockUname:
                         # send to target
                         target_socket.send(user['header'] + user['data'] + message['header'] + msgDataBytes)
-                        thead = {user["header"].decode("utf-8")}
-                        tdata = {user["data"].decode("utf-8")}
-                        t2head = {message["header"].decode("utf-8")}
-                        t2data = {message["data"].decode("utf-8")}
-                        print(thead)
-                        print(tdata)
-                        print(t2head)
-                        print(t2data)               # tester
                         break
             ##################################################################DIRECT MESSAGE####################################################################
 
@@ -196,7 +163,6 @@ while True:
             for client_socket in clients:
 ##################################################################DIRECT MESSAGE###################################################################
                 if directmessage.startswith("@"):
-                    print("TTTTTTTTTTTTTTTTTTTTTTTTT")
                     break
 ##################################################################DIRECT MESSAGE####################################################################
                 # But don't sent it to sender
@@ -230,7 +196,7 @@ class ChannelThread(threading.Thread):
         # For a server using 0.0.0.0 means to listen on all available interfaces, useful to connect locally to 127.0.0.1 and remotely to LAN interface IP
         self.channel_socket.bind(('127.0.0.1', 1234))
 
-        _, self.port = self.channel_socket.getsockname()
+        _, self.port = 1234
 
         # This makes server listen to new connections
         self.channel_socket.listen()  # for normal channels unlimited number of connections
@@ -239,13 +205,17 @@ class ChannelThread(threading.Thread):
         self.start()
 
     # connect new client to channel
-    def connect(self):
+    def run(self):
         while True:
             client = self.channel_socket.accept()
             if not client:
                 break
             # add client to list of clients who can use channel
             self.clients.append(client)
+
+    def sendall(selfself, msg):
+        for client in self.clients:
+            client.send(user['header'] + user['data'] + message['header'] + message['data'])
 
     # def sendMsg(self):
     # for all clients in  the network, output message
@@ -272,6 +242,7 @@ class Channel(threading.Thread):
     def register(self, host, port):
         self.peer_chan_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.peer_chan_sock.connect((host, port))
+        self.peer_chan_sock.setblocking(False)
         # self._callback = update_callback
         self.start()
 
@@ -295,13 +266,24 @@ class Channel(threading.Thread):
     def send_value(self, channel_value):
         self.channel_thread.sendall("%s\n\n" % channel_value)
 
+#to run channel example code
+#process A : Client A
+#c = Channel()
 
-def sendDM(client, message):
-    client.send(message)
+#process B : Client B
+#c = Channel()
+#c.register(host, port)
+
+#process A : CLient A
+#c.send("whatever")
+
+#process B : Client B(anyone on channel)
+#recieves "whatever"
 
 # IP "127.0.0.1"
 # Port 1234
-# def privateMessage():  create channel between 2 people and limit channel to 2
+
+# todolist
 # def connectChannel():
 # def createChannel():
 # def getChannel():
