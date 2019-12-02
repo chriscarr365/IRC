@@ -1,7 +1,10 @@
+import sys
 import socket
 import select
 import errno
 import time
+from time import strftime, gmtime
+import random
 
 HEADER_LEN = 10
 
@@ -52,14 +55,10 @@ def main():
                 if message.__contains__('!'):
                     reply(message[1:])
                 elif message.__contains__('ChatBot'):
-                    sendMessage("Yo")
+                    replyRandom()
 
 
         except IOError as e:
-            # This is normal on non blocking connections - when there are no incoming data error is going to be raised
-            # Some operating systems will indicate that using AGAIN, and some using WOULDBLOCK error code
-            # We are going to check for both - if one of them - that's expected, means no incoming data, continue as normal
-            # If we got different error code - something happened
             if e.errno != errno.EAGAIN and e.errno != errno.EWOULDBLOCK:
                 print('Reading error: {}'.format(str(e)))
                 sys.exit()
@@ -72,31 +71,66 @@ def main():
             print('Reading error: '.format(str(e)))
             sys.exit()  
 
-def sendTime():
-    output = "The time is..."
+# ======================================================================================================
+# Functions below are the reply functions for different commands
+
+def funcTime():
+    output = "The time is... " + strftime("%H:%M:%S", gmtime())
     print(output)
     sendMessage(output)
 
-def sendDate():
-    output = "The date is..."
+def funcDate():
+    output = "The date is... " + strftime("%d-%m-%Y", gmtime())
     print(output)
     sendMessage(output)
+
+def funcIP():
+    output = "The IP is... " + IP
+    print(output)
+    sendMessage(output)
+
+def funcPort():
+    output = "The date is... " + str(PORT)
+    print(output)
+    sendMessage(output)
+
+# ======================================================================================================
 
 def reply(s):
     # Print message
     print(f'Command was !{s}')
-
+    
+    # Dictionary of function names and commands used to call
     switcher = {
-        'time': sendTime,
-        'date': sendDate
+        'time': funcTime,
+        'Time': funcTime,
+        'date': funcDate,
+        'Date': funcDate,
+        'ip': funcIP,
+        'IP': funcIP,
+        'port': funcPort,
+        'Port': funcPort
     }
 
     # Get the function from switcher dictionary
     func = switcher.get(s)
+    
     try:
         func()
     except Exception as e:
+        print('Invalid command: {}'.format(e))
         sendMessage('Thats not a valid command')
+
+
+# Add to this list of random replys
+def replyRandom():
+    reply_list = [
+        'Whats up',
+        'Who are you?',
+        'Yo'
+    ]
+    sendMessage(random.choice(reply_list))
+
 
 def sendMessage(message):
     # Send message if not empty
