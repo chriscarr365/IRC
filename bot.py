@@ -12,7 +12,7 @@ import datetime
 
 
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server = "127.0.0.1" # Server
+server = input("Server IP to connect to: ") # Server
 port = 6667
 channel = "#test" # channel to join
 uname = "ProBot" # the bot name
