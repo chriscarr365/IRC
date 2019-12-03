@@ -8,10 +8,24 @@ import os
 import re
 import selectors
 import types
+import traceback
+#import libserver
 
 sel = selectors.DefaultSelector()
 IP = "127.0.0.1"
 PORT = 1234
+
+clients = {}
+channels = {}
+
+#nickname,name,socket
+class client:
+    def __init__(self, socket):
+        self.nickname = None
+        self.name = None
+        self.socket = socket
+        self.channel = []
+
 
 # Create a socket
 # socket.AF_INET - address family, IPv4, some otehr possible are AF_INET6, AF_BLUETOOTH, AF_UNIX
@@ -48,8 +62,12 @@ def accept_wrapper(sock):  # Should be ready to read since listeningsocket was r
     # Pass events mask, socket and data objects to the selector for register
     sel.register(conn, events, data=data)
 
+    newclient = client(conn)
+    clients[conn] = newclient
+
+
 # Main part of the multi-client server
-# key od the namedtuple returned from select() that contains the socket object(fileobj) and data object.
+# key is the namedtuple returned from select() that contains the socket object(fileobj) and data object.
 # mask contains the events that are ready.
 def service_connection(key, mask):
     sock = key.fileobj
@@ -82,6 +100,24 @@ def service_connection(key, mask):
         if data.outb:
             # send data out to clients
             print("echoing", repr(data.outb), "to", data.addr)
+            message = data.outb.decode("utf-8")
+            print(message.strip("\r"))
+            # if read is /join:
+                # if channel exists:
+                    # add client to channel
+                # else:
+                    # create channel
+                    # add client to channel
+
+            # if read startswith @:
+                # isolate nickname message is targetting
+                # for target in clients:
+                    # user = clients[target]
+                    # set msgTarget to target[nickname]
+                    # if isolated nickname is in MsgTarget:
+                        # send message only to targettedUser
+
+            #loop through sockets and send
             sent = sock.send(data.outb)     # should be ready to write
             data.outb = data.outb[sent:]
 
