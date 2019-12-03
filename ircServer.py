@@ -16,7 +16,8 @@ IP = "127.0.0.1"
 PORT = 1234
 
 clients = {}
-channels = {}
+
+channels = []
 
 #nickname,name,socket
 class client:
@@ -24,7 +25,7 @@ class client:
         self.nickname = None
         self.name = None
         self.socket = socket
-        self.channel = []
+        self.channels = []
 
 
 # Create a socket
@@ -101,13 +102,41 @@ def service_connection(key, mask):
             # send data out to clients
             print("echoing", repr(data.outb), "to", data.addr)
             message = data.outb.decode("utf-8")
+
+            #isolate #channelname from message
+            channelname = message.split(" ")[1]
+
+
+            #tester prints
+            print(channelname)
             print(message.strip("\r"))
-            # if read is /join:
-                # if channel exists:
-                    # add client to channel
-                # else:
-                    # create channel
-                    # add client to channel
+
+            #makesure only works with #<channel>
+
+            if channelname.startswith("#"):
+                #if given channelname is in channels list
+                print("X")
+                if channelname in channels:
+                    #loop through connected clients to find current client socket
+                    for target_socket in clients:
+                        user = clients[target_socket]
+                        #once found current client in client list, in currentclient.channels list, append channelname
+                        if user is sock:
+                            target_socket.channels.append(channelname)
+                            print("testing")
+                else:
+                    print("Y")
+                    #append channelname into channels list
+                    #loop through clients list finding current client
+                    #once found current client, append channelname to currentclient.channels
+                    channels.append(channelname)
+                    print("Y")
+                    for target_socket in clients:
+                        user = clients[target_socket]
+                        if user in sock:
+                            print("Z")
+                            target_socket.channels.append(channelname)
+                            print("tester")
 
             # if read startswith @:
                 # isolate nickname message is targetting
