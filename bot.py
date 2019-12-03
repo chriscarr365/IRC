@@ -7,16 +7,17 @@ import errno
 import time
 from time import strftime, gmtime
 import random
+import datetime
 
 
 
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server = "127.0.0.1" # Server
 port = 6667
-channel = "#home" # Channel
-uname = "Autobot" # Your bots nick.
-adminname = "OrderChaos" #Your IRC nickname. 
-exitcode = "bye " + uname #Text that we will use
+channel = "#test" # channel to join
+uname = "ProBot" # the bot name
+adminname = "chris" #Your IRC nickname. 
+exitcode = "bye " + uname #exit code for admins to close the bot remotely
 client_socket.connect((server, port)) # Here we connect to the server using the port 6667
 client_socket.send(bytes("USER "+ uname +" "+ uname +" "+ uname + " " + uname + "\n", "UTF-8")) # user information
 client_socket.send(bytes("NICK "+ uname +"\n", "UTF-8")) # assign the nick to the bot
@@ -44,20 +45,22 @@ def main():
     print(ircmsg)
     if ("PRIVMSG" in ircmsg): 
       splitmsg = ircmsg.split(':')
+      print("message split 1: "+splitmsg[1])
+      print("message split 2: "+splitmsg[2])
       message = splitmsg[2]
       if message.__contains__('!'):
         command = message.split('!')
-        print("Command word is" + command[1])
+        print("Command word is " + command[1])
         reply(command[1])
-      if (uname in message):
-        print("I heard my name")
-        replyRandom()
+      if (uname in splitmsg[]):
+        if (uname in message):
+          print("I heard my name")
+          replyRandom()
     else:
       if ircmsg.find("PING :") != -1:
         ping()
         
-        
-##TODO fix ping    
+            
 def funcTime():
     output = "The time is... " + strftime("%H:%M:%S", gmtime())
     print(output)
@@ -78,6 +81,15 @@ def funcPort():
     print(output)
     sendMessage(output)
 
+def funcDayOfWeek():
+  weekDays = ("Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday")
+  currentDate = datetime.datetime.today()
+  currentDay = currentDate.weekday()
+  output = "Today is "+weekDays[currentDay]
+  print(output)
+  sendMessage(output)
+
+
 # ======================================================================================================
 
 def reply(s):
@@ -93,7 +105,10 @@ def reply(s):
         'ip': funcIP,
         'IP': funcIP,
         'port': funcPort,
-        'Port': funcPort
+        'Port': funcPort,
+        'day': funcDayOfWeek,
+        'Day': funcDayOfWeek
+
     }
 
     # Get the function from switcher dictionary
