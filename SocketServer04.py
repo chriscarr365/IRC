@@ -4,7 +4,7 @@ import select
 HEADER_LENGTH = 10
 
 IP = "127.0.0.1"
-PORT = 1234
+PORT = 6667
 
 # Create a socket
 # socket.AF_INET - address family, IPv4, some otehr possible are AF_INET6, AF_BLUETOOTH, AF_UNIX
@@ -114,6 +114,9 @@ while True:
                 del clients[notified_socket]
 
                 continue
+            #implement the keyword filtering system here
+            #
+            #
 
             # Get user by notified socket, so we will know who sent the message
             user = clients[notified_socket]
@@ -124,11 +127,11 @@ while True:
             for client_socket in clients:
 
                 # But don't sent it to sender
-                if client_socket != notified_socket:
+                #if client_socket != notified_socket:
 
-                    # Send user and message (both with their headers)
-                    # We are reusing here message header sent by sender, and saved username header send by user when he connected
-                    client_socket.send(user['header'] + user['data'] + message['header'] + message['data'])
+                # Send user and message (both with their headers)
+                # We are reusing here message header sent by sender, and saved username header send by user when he connected
+                client_socket.send(user['header'] + user['data'] + message['header'] + message['data'])
 
     # It's not really necessary to have this, but will handle some socket exceptions just in case
     for notified_socket in exception_sockets:
