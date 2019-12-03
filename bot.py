@@ -30,6 +30,7 @@ def joinchan(chan): # join channel(s).
 
 def ping(): # respond to server Pings.
   client_socket.send(bytes("PONG :pingis\n", "UTF-8"))
+  print("replied PONG to server")
 
 def sendMessage(msg, target=channel): # sends messages to the target.
   client_socket.send(bytes("PRIVMSG "+ target +" :"+ msg +"\n", "UTF-8"))
@@ -41,14 +42,16 @@ def main():
     ircmsg = client_socket.recv(1024).decode("UTF-8")
     ircmsg = ircmsg.strip('\n\r')
     print(ircmsg)
-    splitmsg = ircmsg.split(':')
-    message = splitmsg[2]
-    if ("PRIVMSG" in splitmsg[1]): 
+    if ("PRIVMSG" in ircmsg): 
+      splitmsg = ircmsg.split(':')
+      message = splitmsg[2]
+      if message.__contains__('!'):
+        command = message.split('!')
+        print("Command word is" + command[1])
+        reply(command[1])
       if (uname in message):
         print("I heard my name")
         replyRandom()
-      if message.__contains__('!'):
-        reply(message[1:])
     else:
       if ircmsg.find("PING :") != -1:
         ping()
