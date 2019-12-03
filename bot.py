@@ -45,17 +45,17 @@ def main():
     print(ircmsg)
     if ("PRIVMSG" in ircmsg): 
       splitmsg = ircmsg.split(':')
-      print("message split 1: "+splitmsg[1])
-      print("message split 2: "+splitmsg[2])
+      #print("message split 1: "+splitmsg[1])
+      #print("message split 2: "+splitmsg[2])
       message = splitmsg[2]
       if message.__contains__('!'):
         command = message.split('!')
         print("Command word is " + command[1])
         reply(command[1])
-      if (uname in splitmsg[]):
-        if (uname in message):
-          print("I heard my name")
-          replyRandom()
+      if (uname in splitmsg[1]):
+        print("I heard my name")
+        recipientName = str(splitmsg[1].split('!')[0])
+        replyRandom(recipientName)
     else:
       if ircmsg.find("PING :") != -1:
         ping()
@@ -122,12 +122,21 @@ def reply(s):
 
 
 # Add to this list of random replys
-def replyRandom():
+#function to be called to for when a user private messages the bot
+def replyRandom(recipient):
     reply_list = [
-        'Whats up',
+        'Alright there',
         'Who are you?',
-        'Yo'
+        'Yo',
+        'I cannot believe you just said that',
+        'Did I say you could talk to me?',
+        'That is enough of that',
+        'oof',
+        'uhh nah',
+        'Hold up. Not had coffee yet and I am not ready for this'
     ]
-    sendMessage(random.choice(reply_list))
+    reply=random.choice(reply_list)
+    print("Sending message "+reply+" to " + recipient)
+    sendMessage(reply,recipient)
 main()
  
