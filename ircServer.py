@@ -22,10 +22,22 @@ channels = []
 #nickname,name,socket
 class client:
     def __init__(self, socket):
+        self.user = None
+        self.host = client_address
+        self.server = 
         self.nickname = None
         self.name = None
         self.socket = socket
         self.channels = []
+        self.writebuffer = ""
+
+class channel(object):
+    def __init__(self, name, topic="No topic"):
+        self.name = name
+        self.topic_by = "Unknown"
+        self.topic = topic
+        self.clients = set()
+
 
 
 # Create a socket
@@ -46,6 +58,9 @@ listeningSocket.setblocking(False)
 
 # Listening Socket so we want to read
 sel.register(listeningSocket, selectors.EVENT_READ, data=None)
+
+
+response
 
 
 # Accepting Connection from Client
@@ -112,7 +127,6 @@ def service_connection(key, mask):
             print(message.strip("\r"))
 
             #makesure only works with #<channel>
-
             if channelname.startswith("#"):
                 #if given channelname is in channels list
                 print("X")
@@ -133,10 +147,31 @@ def service_connection(key, mask):
                     print("Y")
                     for target_socket in clients:
                         user = clients[target_socket]
-                        if user in sock:
+                        if user == sock:
                             print("Z")
                             target_socket.channels.append(channelname)
                             print("tester")
+
+                    #response_format = ':%s TOPIC %s :%s\r\n' % (channel.topic_by, channel.name, channel.topic)
+                    #self.writebuffer += response_format
+
+                    #response_format = ':%s JOIN :%s\r\n' % (
+                    #self.server.get_prefix() % (self.nickname, self.username, self.server.HOST), channelname)
+                    #self.writebuffer += response_format
+
+                    #clients = self.server.get_clients()
+                    #nicks = [client.get_nickname() for client in clients.values()]
+
+                    #response_format = ':%s 353 %s = %s :%s\r\n' % (
+                    #self.server.HOST, self.nickname, channelname, ' '.join(nicks))
+                    #self.writebuffer += response_format
+
+                    #response_format = ':%s 366 %s %s: End of /NAMES list\r\n' % (
+                    #self.server.HOST, self.nickname, channelname)
+                    #self.writebuffer += response_format
+
+                    #self.server.send_message_to_client(self.writebuffer, key=self.server.get_key())
+                    #elf.writebuffer = ""
 
             # if read startswith @:
                 # isolate nickname message is targetting
