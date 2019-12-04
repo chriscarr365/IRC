@@ -108,11 +108,20 @@ listeningSocket.setblocking(False)
 # Listening Socket so we want to read
 sel.register(listeningSocket, selectors.EVENT_READ, data=None)
 
+def handling(command, arguments, key, mask):
+    surrSock = key.fileobj
+    print(arguments)
 
-#def handler():
-    #if command is /join:
-    #   join channel
-    #
+    if command.upper() == "JOIN":
+        key.fileobj.send(":test!tester@127.0.0.1 JOIN #test\n".encode())
+    else:
+        print("random")
+
+def parse(input):
+    temp = input.split()
+    arguments = temp[1:]
+    command = temp[0]
+    return command, arguments
 
 
 # Accepting Connection from Client
@@ -140,6 +149,9 @@ def accept_wrapper(sock):  # Should be ready to read since listeningsocket was r
 def service_connection(key, mask):
     sock = key.fileobj
     data = key.data
+    #for client in clients:
+        #if client.socket == sock:
+
 
     # if socket is ready for reading then this is true
     if mask & selectors.EVENT_READ:
@@ -150,18 +162,25 @@ def service_connection(key, mask):
         if recv_data:
             # append any data that is read into recv_data to data.outb so it can be sent later
             data.outb += recv_data
+            command, arguments = parse(recv_data.decode("utf-8"))
+            #if command == "NICK":
+               # print("NICK")
+
+            handling(command, arguments[0], key, mask)
+
             message = data.outb.decode("utf-8")
             print(message)
-            # isolate #channelname from message
+            #isolate #channelname from message
             channelname = message.split(" ")[1]
 
-            # tester prints
-            print(channelname)
-            print(message.strip("\r"))
+             #tester prints
+            #print(channelname)
+            #print(message.strip("\r"))
 
-            if channelname.startswith("#"):
-                key.fileobj.send(":test!tester@127.0.0.1 JOIN #test\n".encode())
-                print("TEST")
+            #if channelname.startswith("#"):
+                #key.fileobj.send(":test!tester@127.0.0.1 JOIN #test\n".encode())
+                #print("TEST")
+
 
         # if no data is received, the client has closed their socket
         else:
