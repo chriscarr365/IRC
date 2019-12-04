@@ -71,7 +71,10 @@ class client(object):
 
         #send_to_client(self.writebuffer, key=self.server.get_key())
         #stringToSend()
-        self.socket.send(":self.nickname!self.user@IP JOIN #channelname".encode())
+        #key.fileobj.send(":test!tester@127.0.0.1 JOIN #test\n".encode())
+        self.socket.send(self.writebuffer)
+
+        #self.socket.send(":self.nickname!self.user@IP JOIN #channelname".encode())
 
         self.writebuffer = ""
 
@@ -105,6 +108,11 @@ listeningSocket.setblocking(False)
 # Listening Socket so we want to read
 sel.register(listeningSocket, selectors.EVENT_READ, data=None)
 
+
+#def handler():
+    #if command is /join:
+    #   join channel
+    #
 
 
 # Accepting Connection from Client
@@ -142,6 +150,18 @@ def service_connection(key, mask):
         if recv_data:
             # append any data that is read into recv_data to data.outb so it can be sent later
             data.outb += recv_data
+            message = data.outb.decode("utf-8")
+            print(message)
+            # isolate #channelname from message
+            channelname = message.split(" ")[1]
+
+            # tester prints
+            print(channelname)
+            print(message.strip("\r"))
+
+            if channelname.startswith("#"):
+                key.fileobj.send(":test!tester@127.0.0.1 JOIN #test\n".encode())
+                print("TEST")
 
         # if no data is received, the client has closed their socket
         else:
@@ -154,30 +174,12 @@ def service_connection(key, mask):
             # close the socket
             sock.close()
 
-    # if socket is ready for reading then this is true
+    # if socket is ready for writing then this is true
     if mask & selectors.EVENT_WRITE:
         # if has received data from socket
         if data.outb:
             # send data out to clients
             print("echoing", repr(data.outb), "to", data.addr)
-            message = data.outb.decode("utf-8")
-
-            #isolate #channelname from message
-            channelname = message.split(" ")[1]
-
-
-            #tester prints
-            print(channelname)
-            print(message.strip("\r"))
-
-            if channelname.startswith("#"):
-                key.fileobj.send(":test!tester@127.0.0.1 JOIN #test\n".encode())
-                print("TEST")
-
-            #makesure only works with #<channel>
-            #if channelname.startswith("#"):
-                #currClient.joinChannel(channelname)
-
 
             # if read startswith @:
                 # isolate nickname message is targetting
