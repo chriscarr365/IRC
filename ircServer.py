@@ -18,9 +18,13 @@ PORT = 1234
 daemon_threads = True
 allow_reuse_address = True
 clients = {}
-channels = {}
+channels = {"#test"}
 
 servername = "127.0.0.1/1234"
+
+#def send_to_client(self, buffer, key):
+
+
 
 #nickname,name,socket
 class client(object):
@@ -47,11 +51,10 @@ class client(object):
         self.channels[chnl.name] = channel
 
         # send the topic over to HexChat
-        response_join_channel = ':%s TOPIC %s :%s\r\n' % (channel.topic_by, channel.name, channel.topic)
+        response_join_channel = ':%s TOPIC %s :%s\r\n' % (chnl.topic_by, chnl.name, chnl.topic)
         self.writebuffer += response_join_channel
 
         # send the join channel message to all in channel, including self
-        #response_join_channel = ':%s JOIN :%s\r\n' % (self.server.get_prefix() % (self.nickname, self.username, self.server.HOST), channelname)
         response_format = ':%s JOIN :%s\r\n' % (self.getIdentity(), channelname)
         for client in chnl.clients:
             client.writebuffer += response_join_channel
@@ -63,6 +66,16 @@ class client(object):
 
         response_join_channel = ':%s 366 %s %s: End of /NAMES list\r\n' % (servername, self.nickname, chnl.name)
         self.writebuffer += response_join_channel
+
+        self.socket.send(self.writebuffer.encode())
+
+        #send_to_client(self.writebuffer, key=self.server.get_key())
+        #stringToSend()
+        self.socket.send(":self.nickname!self.user@IP JOIN #channelname".encode())
+
+        self.writebuffer = ""
+
+
 
 class channel(object):
     def __init__(self, name, topic="No topic"):
@@ -157,6 +170,10 @@ def service_connection(key, mask):
             print(channelname)
             print(message.strip("\r"))
 
+            if channelname.startswith("#"):
+                key.fileobj.send(":test!tester@127.0.0.1 JOIN #test\n".encode())
+                print("TEST")
+
             #makesure only works with #<channel>
             #if channelname.startswith("#"):
                 #currClient.joinChannel(channelname)
@@ -170,9 +187,10 @@ def service_connection(key, mask):
                     # if isolated nickname is in MsgTarget:
                         # send message only to targettedUser
 
-            #loop through sockets and send
-            #sent = sock.send(data.outb)     # should be ready to write
-            #data.outb = data.outb[sent:]
+            # loop through sockets and send
+            sent = sock.send(data.outb)     # should be ready to write
+            data.outb = data.outb[sent:]
+
 
 
 while True:
