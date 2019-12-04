@@ -15,21 +15,54 @@ sel = selectors.DefaultSelector()
 IP = "127.0.0.1"
 PORT = 1234
 
+daemon_threads = True
+allow_reuse_address = True
 clients = {}
+channels = {}
 
-channels = []
+servername = "127.0.0.1/1234"
 
 #nickname,name,socket
-class client:
-    def __init__(self, socket):
+class client(object):
+    def __init__(self, socket): #client_address
         self.user = None
-        self.host = client_address
-        self.server = 
+        #self.host = client_address
+        #self.server = server
         self.nickname = None
-        self.name = None
+        self.realname = None
         self.socket = socket
-        self.channels = []
+        self.channels = {}
         self.writebuffer = ""
+        self.readbuffer = ""
+        self.sent_ping = False
+
+    def getIdentity(self):
+        return '%s!%s@%s' % (self.nickname, self.user, servername)
+
+    def joinChannel(self, channelname):
+        # add user to the channel(create new channel if doesnt exist)
+        chnl = channels.setdefault(channelname, channel(channelname))
+        chnl.clients.add(self)
+        # add channel to user's channel list
+        self.channels[chnl.name] = channel
+
+        # send the topic over to HexChat
+        response_join_channel = ':%s TOPIC %s :%s\r\n' % (channel.topic_by, channel.name, channel.topic)
+        self.writebuffer += response_join_channel
+
+        # send the join channel message to all in channel, including self
+        #response_join_channel = ':%s JOIN :%s\r\n' % (self.server.get_prefix() % (self.nickname, self.username, self.server.HOST), channelname)
+        response_format = ':%s JOIN :%s\r\n' % (self.getIdentity(), channelname)
+        for client in chnl.clients:
+            client.writebuffer += response_join_channel
+
+        nicks = [client.nickname for client in channel.clients]
+
+        response_join_channel = ':%s 353 %s = %s :%s\r\n' % (servername, self.nickname, chnl.name, ' '.join(nicks))
+        self.writebuffer += response_join_channel
+
+        response_join_channel = ':%s 366 %s %s: End of /NAMES list\r\n' % (servername, self.nickname, chnl.name)
+        self.writebuffer += response_join_channel
 
 class channel(object):
     def __init__(self, name, topic="No topic"):
@@ -37,7 +70,7 @@ class channel(object):
         self.topic_by = "Unknown"
         self.topic = topic
         self.clients = set()
-
+        
 
 
 # Create a socket
@@ -59,8 +92,6 @@ listeningSocket.setblocking(False)
 # Listening Socket so we want to read
 sel.register(listeningSocket, selectors.EVENT_READ, data=None)
 
-
-response
 
 
 # Accepting Connection from Client
@@ -127,51 +158,9 @@ def service_connection(key, mask):
             print(message.strip("\r"))
 
             #makesure only works with #<channel>
-            if channelname.startswith("#"):
-                #if given channelname is in channels list
-                print("X")
-                if channelname in channels:
-                    #loop through connected clients to find current client socket
-                    for target_socket in clients:
-                        user = clients[target_socket]
-                        #once found current client in client list, in currentclient.channels list, append channelname
-                        if user is sock:
-                            target_socket.channels.append(channelname)
-                            print("testing")
-                else:
-                    print("Y")
-                    #append channelname into channels list
-                    #loop through clients list finding current client
-                    #once found current client, append channelname to currentclient.channels
-                    channels.append(channelname)
-                    print("Y")
-                    for target_socket in clients:
-                        user = clients[target_socket]
-                        if user == sock:
-                            print("Z")
-                            target_socket.channels.append(channelname)
-                            print("tester")
+            #if channelname.startswith("#"):
+                #currClient.joinChannel(channelname)
 
-                    #response_format = ':%s TOPIC %s :%s\r\n' % (channel.topic_by, channel.name, channel.topic)
-                    #self.writebuffer += response_format
-
-                    #response_format = ':%s JOIN :%s\r\n' % (
-                    #self.server.get_prefix() % (self.nickname, self.username, self.server.HOST), channelname)
-                    #self.writebuffer += response_format
-
-                    #clients = self.server.get_clients()
-                    #nicks = [client.get_nickname() for client in clients.values()]
-
-                    #response_format = ':%s 353 %s = %s :%s\r\n' % (
-                    #self.server.HOST, self.nickname, channelname, ' '.join(nicks))
-                    #self.writebuffer += response_format
-
-                    #response_format = ':%s 366 %s %s: End of /NAMES list\r\n' % (
-                    #self.server.HOST, self.nickname, channelname)
-                    #self.writebuffer += response_format
-
-                    #self.server.send_message_to_client(self.writebuffer, key=self.server.get_key())
-                    #elf.writebuffer = ""
 
             # if read startswith @:
                 # isolate nickname message is targetting
@@ -182,8 +171,8 @@ def service_connection(key, mask):
                         # send message only to targettedUser
 
             #loop through sockets and send
-            sent = sock.send(data.outb)     # should be ready to write
-            data.outb = data.outb[sent:]
+            #sent = sock.send(data.outb)     # should be ready to write
+            #data.outb = data.outb[sent:]
 
 
 while True:
