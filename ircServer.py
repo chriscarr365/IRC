@@ -144,7 +144,7 @@ def handling(command, arguments, key, mask):
     if command.upper() == "NICK":
         print("NICKNAME COMMAND")
         count = 0
-        for target in clients:
+        for target in clients[listeningSocket]:
             for key, value in clients.items():
                 print(key, value)   #DICTIONARY ITEMS(KEY AND ALL ITS VALUES
             print(target)           #server socket
@@ -154,13 +154,14 @@ def handling(command, arguments, key, mask):
             temp2 = temp[count]
             print(temp2.socket)     #client socket in dictionary
 
-            if currSock == temp2.socket:
+            if currSock == temp2.socket:        #only works for first connection
                 print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
                 clients[listeningSocket][count].setNickname(arguments)
                 print("NICKNAME ASSIGNED IS: " + clients[listeningSocket][count].nickname)
                 print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
                 break
-
+            else:
+                count += 1
     # recieve username from HexChat Client and set in Client class instance in server client list
     if command.upper() == "USER":
         print("USERNAME COMMAND")
@@ -175,12 +176,14 @@ def handling(command, arguments, key, mask):
             temp2 = temp[count]
             print(temp2.socket)     #client socket in dictionary
 
-            if currSock == temp2.socket:
+            if currSock == temp2.socket:    #only works for first connection
                 print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
                 clients[listeningSocket][count].setUser(arguments)
                 print("USERNAME ASSIGNED IS: " + clients[listeningSocket][count].user)
                 print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
                 break
+            else:
+                count += 1
 
     # receieve JOIN command from HexChat
     if command.upper() == "JOIN":
@@ -199,8 +202,9 @@ def handling(command, arguments, key, mask):
                 temp2 = temp[count]
                 print(temp2.socket)  # client socket in dictionary
 
-                if currSock == temp2.socket:
+                if currSock == temp2.socket:    #only works for first connection
                     temp2.joinChannel(arguments)
+                    print("JOINED SUCCESS")
                 #if client.getSocket() == currSock:
                     #key.fileobj.send(":test!tester@127.0.0.1 JOIN #test\n".encode())
                     # uses correct client instance to join channel
