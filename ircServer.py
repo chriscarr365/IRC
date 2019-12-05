@@ -17,7 +17,8 @@ PORT = 1234
 
 daemon_threads = True
 allow_reuse_address = True
-clients = {}
+clients = {
+}
 channels = {"#test"}
 
 servername = "127.0.0.1/1234"
@@ -40,6 +41,27 @@ class client(object):
         self.readbuffer = ""
         self.sent_ping = False
 
+    def getNickname(self):
+        return self.nickname
+
+    def setNickname(self, nickname):
+        self.nickname = nickname
+
+    def getRealname(self):
+        return self.realname
+
+    def setRealname(realname):
+        self.realname = realname
+
+    def getUser(self):
+        return self.user
+
+    def setUser(user):
+        self.user = user
+    
+    def getSocket(self):
+        return self.socket
+
     def getIdentity(self):
         return '%s!%s@%s' % (self.nickname, self.user, servername)
 
@@ -55,11 +77,11 @@ class client(object):
         self.writebuffer += response_join_channel
 
         # send the join channel message to all in channel, including self
-        response_format = ':%s JOIN :%s\r\n' % (self.getIdentity(), channelname)
+        response_join_channel = ':%s JOIN :%s\r\n' % (self.getIdentity(), channelname)
         for client in chnl.clients:
             client.writebuffer += response_join_channel
 
-        nicks = [client.nickname for client in channel.clients]
+        nicks = [client.nickname for client in chnl.clients]
 
         response_join_channel = ':%s 353 %s = %s :%s\r\n' % (servername, self.nickname, chnl.name, ' '.join(nicks))
         self.writebuffer += response_join_channel
@@ -98,6 +120,7 @@ listeningSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 # For a server using 0.0.0.0 means to listen on all available interfaces, useful to connect locally to 127.0.0.1 and remotely to LAN interface IP
 listeningSocket.bind((IP, PORT))
 
+
 # This makes server listen to new connections
 listeningSocket.listen()
 print("listening on", (IP, PORT))
@@ -108,12 +131,61 @@ listeningSocket.setblocking(False)
 # Listening Socket so we want to read
 sel.register(listeningSocket, selectors.EVENT_READ, data=None)
 
-def handling(command, arguments, key, mask):
-    surrSock = key.fileobj
-    print(arguments)
+clients[listeningSocket] = []
 
+def handling(command, arguments, key, mask):
+    currSock = key.fileobj
+    print("~~~~~~~~~~~~~~~~~~~~~~")
+    print("Arguments is " + arguments)
+    print("Commands is " + command)
+    print("~~~~~~~~~~~~~~~~~~~~~~")
+
+    # recieve nickname from HexChat Client and set in Client class instance in server client list
+    if command.upper() == "NICK":
+        print("NICKNAME COMMAND")
+        count = 0
+        for target in clients:
+            for key, value in clients.items():
+                print(key, value)   #DICTIONARY ITEMS(KEY AND ALL ITS VALUES
+            print(target)           #server socket
+            print(currSock)         #client socket
+            temp = clients[listeningSocket] #list from key
+            print(temp)             #prints client list
+            temp2 = temp[count]
+            print(temp2.socket)     #client socket in dictionary
+
+            if currSock == temp2.socket:
+                print("TESTER")
+                clients[listeningSocket][count].setNickname(arguments)
+                print("NICKNAME ASSIGNED IS: " + clients[listeningSocket][count].nickname)
+                print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+                break
+
+    # recieve username from HexChat Client and set in Client class instance in server client list
+    if command.upper() == "USER":
+        print("USERNAME")
+        temp = arguments.split()
+        uname = temp[0]
+        for client in clients:
+            print(client)
+            #if client.getSocket() == currSock:
+                #client.setUser(uname)
+
+    # receieve JOIN command from HexChat
     if command.upper() == "JOIN":
+        # make sure channel argument starts with #
         key.fileobj.send(":test!tester@127.0.0.1 JOIN #test\n".encode())
+        if arguments.startswith("#"):
+            #loop through servers clients list
+            for client in clients:
+                #if clientslist.socket is equal to currentSocket then you have found correct Client instance for currSocket
+                print(client)
+                #if client.getSocket() == currSock:
+                    #key.fileobj.send(":test!tester@127.0.0.1 JOIN #test\n".encode())
+                    # uses correct client instance to join channel
+                    #client.joinchannel(arguments)
+        else:
+            print("invalid channel format")
     else:
         print("random")
 
@@ -140,7 +212,8 @@ def accept_wrapper(sock):  # Should be ready to read since listeningsocket was r
     sel.register(conn, events, data=data)
 
     newclient = client(conn)
-    clients[conn] = newclient
+    clients[listeningSocket].append(newclient)
+
 
 
 # Main part of the multi-client server
@@ -162,24 +235,15 @@ def service_connection(key, mask):
         if recv_data:
             # append any data that is read into recv_data to data.outb so it can be sent later
             data.outb += recv_data
-            command, arguments = parse(recv_data.decode("utf-8"))
-            #if command == "NICK":
-               # print("NICK")
 
+            #take recieved data and isolate into command and arguments
+            command, arguments = parse(recv_data.decode("utf-8"))
+
+            #run handler on command and arguments
             handling(command, arguments[0], key, mask)
 
             message = data.outb.decode("utf-8")
             print(message)
-            #isolate #channelname from message
-            channelname = message.split(" ")[1]
-
-             #tester prints
-            #print(channelname)
-            #print(message.strip("\r"))
-
-            #if channelname.startswith("#"):
-                #key.fileobj.send(":test!tester@127.0.0.1 JOIN #test\n".encode())
-                #print("TEST")
 
 
         # if no data is received, the client has closed their socket
