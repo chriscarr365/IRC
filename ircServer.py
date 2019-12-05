@@ -19,7 +19,7 @@ daemon_threads = True
 allow_reuse_address = True
 clients = {
 }
-channels = {"#test"}
+channels = {}
 
 servername = "127.0.0.1/1234"
 
@@ -94,7 +94,7 @@ class client(object):
         #send_to_client(self.writebuffer, key=self.server.get_key())
         #stringToSend()
         #key.fileobj.send(":test!tester@127.0.0.1 JOIN #test\n".encode())
-        self.socket.send(self.writebuffer)
+        #self.socket.send(self.writebuffer)
 
         #self.socket.send(":self.nickname!self.user@IP JOIN #channelname".encode())
 
@@ -155,7 +155,7 @@ def handling(command, arguments, key, mask):
             print(temp2.socket)     #client socket in dictionary
 
             if currSock == temp2.socket:
-                print("TESTER")
+                print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
                 clients[listeningSocket][count].setNickname(arguments)
                 print("NICKNAME ASSIGNED IS: " + clients[listeningSocket][count].nickname)
                 print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
@@ -163,23 +163,44 @@ def handling(command, arguments, key, mask):
 
     # recieve username from HexChat Client and set in Client class instance in server client list
     if command.upper() == "USER":
-        print("USERNAME")
-        temp = arguments.split()
-        uname = temp[0]
-        for client in clients:
-            print(client)
-            #if client.getSocket() == currSock:
-                #client.setUser(uname)
+        print("USERNAME COMMAND")
+        count = 0
+        for target in clients:
+            for key, value in clients.items():
+                print(key, value)   #DICTIONARY ITEMS(KEY AND ALL ITS VALUES
+            print(target)           #server socket
+            print(currSock)         #client socket
+            temp = clients[listeningSocket] #list from key
+            print(temp)             #prints client list
+            temp2 = temp[count]
+            print(temp2.socket)     #client socket in dictionary
+
+            if currSock == temp2.socket:
+                print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+                clients[listeningSocket][count].setUser(arguments)
+                print("USERNAME ASSIGNED IS: " + clients[listeningSocket][count].user)
+                print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+                break
 
     # receieve JOIN command from HexChat
     if command.upper() == "JOIN":
         # make sure channel argument starts with #
-        key.fileobj.send(":test!tester@127.0.0.1 JOIN #test\n".encode())
+        #key.fileobj.send(":test!tester@127.0.0.1 JOIN #test\n".encode())
         if arguments.startswith("#"):
             #loop through servers clients list
-            for client in clients:
-                #if clientslist.socket is equal to currentSocket then you have found correct Client instance for currSocket
-                print(client)
+            count = 0
+            for target in clients:
+                for key, value in clients.items():
+                    print(key, value)  # DICTIONARY ITEMS(KEY AND ALL ITS VALUES
+                print(target)  # server socket
+                print(currSock)  # client socket
+                temp = clients[listeningSocket]  # list from key
+                print(temp)  # prints client list
+                temp2 = temp[count]
+                print(temp2.socket)  # client socket in dictionary
+
+                if currSock == temp2.socket:
+                    temp2.joinChannel(arguments)
                 #if client.getSocket() == currSock:
                     #key.fileobj.send(":test!tester@127.0.0.1 JOIN #test\n".encode())
                     # uses correct client instance to join channel
