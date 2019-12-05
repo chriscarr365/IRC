@@ -195,9 +195,7 @@ def handling(command, arguments, key, mask):
                 count += 1
 
     # receieve JOIN command from HexChat
-    if command.upper() == "JOIN":
-        # make sure channel argument starts with #
-        #key.fileobj.send(":test!tester@127.0.0.1 JOIN #test\n".encode())
+    if command.upper() == "JOIN": #TODO when to join a server, send client info of everyone already in that server
         if arguments.startswith("#"):
             #loop through servers clients list
             count = 0   #iterator to loop through Clients list stored in dictionary
@@ -237,10 +235,6 @@ def handling(command, arguments, key, mask):
         #print("received ping, replying pong")
         count = 0
         for target in clients[listeningSocket]:
-            #for key, value in clients.items():
-                #print(key, value)   #DICTIONARY ITEMS(KEY AND ALL ITS VALUES
-            #print(target)           #server socket
-            #print(currSock)         #client socket
             temp = clients[listeningSocket] #list from key
            # print(temp)             #prints client list
             temp2 = temp[count]
@@ -257,9 +251,51 @@ def handling(command, arguments, key, mask):
             else:
                 count += 1
     if command.upper() == "PRIVMSG":
-        print("DO MESSAGE SENDING HERE")
-        messageContent= arguments
-        print(messageContent)
+        messageContent= arguments.split(":")
+        senderName = "" #the sender
+        count = 0
+        for target in clients[listeningSocket]:
+            temp = clients[listeningSocket] #list from key
+           #print(temp)             #prints client list
+            temp2 = temp[count]
+            #print(temp2.socket)     #client socket in dictionary
+            if currSock == temp2.socket:    #only works for first connection
+                senderName = temp2.getNickname()
+                break
+            else:
+                count += 1
+            
+            count = 0
+        destination = messageContent[0]
+        messageText = messageContent[1]
+        #print("the target is : "+target+" and the text is : "+ messageText)
+        if destination.startswith("#"):
+            #send to channel
+            print("send to channel")
+        else:
+            #send to ind
+            
+            targetUser = destination
+            count = 0
+            for target in clients[listeningSocket]:
+                temp = clients[listeningSocket] #list from key
+            # print(temp)             #prints client list
+                temp2 = temp[count]
+                #print(temp2.socket)     #client socket in dictionary
+
+                if targetUser == temp2.nickname:    #only works for first connection
+                    print("found user to send info to")
+                    #clients[listeningSocket][count].setUser(arguments)
+                    #assignedNick = clients[listeningSocket][count].nickname
+                    #print("USERNAME ASSIGNED IS: " + clients[listeningSocket][count].user)
+                    temp2.socket.send(bytes(":"+targetUser+"!"+ targetUser+ "@"+ IP +" PRIVMSG "+ targetUser +" :"+ messageText +"\n", "UTF-8"))
+                    #print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+                    break
+                else:
+                    count += 1
+            
+        
+        
     ######## Handle priv message, part, private message
     
     else:
