@@ -56,7 +56,7 @@ class client(object):
     def getUser(self):
         return self.user
 
-    def setUser(user):
+    def setUser(self, user):
         self.user = user
     
     def getSocket(self):
@@ -88,7 +88,7 @@ class client(object):
 
         response_join_channel = ':%s 366 %s %s: End of /NAMES list\r\n' % (servername, self.nickname, chnl.name)
         self.writebuffer += response_join_channel
-
+        print(self.writebuffer)
         self.socket.send(self.writebuffer.encode())
 
         #send_to_client(self.writebuffer, key=self.server.get_key())
@@ -139,7 +139,7 @@ def handling(command, arguments, key, mask):
     print("Arguments is " + arguments)
     print("Commands is " + command)
     print("~~~~~~~~~~~~~~~~~~~~~~")
-
+    print(arguments)
     # recieve nickname from HexChat Client and set in Client class instance in server client list
     if command.upper() == "NICK":
         print("NICKNAME COMMAND")
@@ -149,7 +149,7 @@ def handling(command, arguments, key, mask):
                 print(key, value)   #DICTIONARY ITEMS(KEY AND ALL ITS VALUES
             print(target)           #server socket
             print(currSock)         #client socket
-            temp = clients[listeningSocket] #list from key
+            temp = clients[listeningSocket] #set variable to list the key is pointing to, can then use temp to access Client Fields/methods
             print(temp)             #prints client list
             temp2 = temp[count]
             print(temp2.socket)     #client socket in dictionary
@@ -166,7 +166,7 @@ def handling(command, arguments, key, mask):
     if command.upper() == "USER":
         print("USERNAME COMMAND")
         count = 0
-        for target in clients:
+        for target in clients[listeningSocket]:
             for key, value in clients.items():
                 print(key, value)   #DICTIONARY ITEMS(KEY AND ALL ITS VALUES
             print(target)           #server socket
@@ -191,7 +191,7 @@ def handling(command, arguments, key, mask):
         #key.fileobj.send(":test!tester@127.0.0.1 JOIN #test\n".encode())
         if arguments.startswith("#"):
             #loop through servers clients list
-            count = 0
+            count = 0   #iterator to loop through Clients list stored in dictionary
             for target in clients[listeningSocket]:
                 for key, value in clients.items():
                     print("---------DICT----------")
@@ -217,12 +217,10 @@ def handling(command, arguments, key, mask):
                     print("JOINED SUCCESS")
                 else:
                     count += 1
-                #if client.getSocket() == currSock:
-                    #key.fileobj.send(":test!tester@127.0.0.1 JOIN #test\n".encode())
-                    # uses correct client instance to join channel
-                    #client.joinchannel(arguments)
         else:
             print("invalid channel format")
+    if command.upper() == "PRVMSG":
+        print("DO MESSAGE SENDING HERE")
     else:
         print("random")
 
@@ -272,7 +270,7 @@ def service_connection(key, mask):
         if recv_data:
             # append any data that is read into recv_data to data.outb so it can be sent later
             data.outb += recv_data
-
+            print(data.outb.decode("utf-8"))
             #take recieved data and isolate into command and arguments
             command, arguments = parse(recv_data.decode("utf-8"))
 
@@ -298,6 +296,9 @@ def service_connection(key, mask):
     if mask & selectors.EVENT_WRITE:
         # if has received data from socket
         if data.outb:
+            #command, arguments = parse(data.outb.decode("utf-8"))
+
+            # handling(command, arguments[0], key, mask)
             # send data out to clients
             print("echoing", repr(data.outb), "to", data.addr)
 
