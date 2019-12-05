@@ -192,19 +192,31 @@ def handling(command, arguments, key, mask):
         if arguments.startswith("#"):
             #loop through servers clients list
             count = 0
-            for target in clients:
+            for target in clients[listeningSocket]:
                 for key, value in clients.items():
+                    print("---------DICT----------")
                     print(key, value)  # DICTIONARY ITEMS(KEY AND ALL ITS VALUES
-                print(target)  # server socket
+                    print("---------DICT----------")
+                print("---------TARGET----------")
+                print(target)  # client in the list iterated
+                print("---------TARGET----------")
+                print("---------CURRENT SOCKET----------")
                 print(currSock)  # client socket
+                print("---------CURRENT SOCKET----------")
+                print("---------TEMP----------")
                 temp = clients[listeningSocket]  # list from key
                 print(temp)  # prints client list
+                print("---------TEMP----------")
                 temp2 = temp[count]
+                print("---------TEMP 2----------")
                 print(temp2.socket)  # client socket in dictionary
+                print("---------TEMP 2----------")
 
                 if currSock == temp2.socket:    #only works for first connection
                     temp2.joinChannel(arguments)
                     print("JOINED SUCCESS")
+                else:
+                    count += 1
                 #if client.getSocket() == currSock:
                     #key.fileobj.send(":test!tester@127.0.0.1 JOIN #test\n".encode())
                     # uses correct client instance to join channel
