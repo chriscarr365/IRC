@@ -14,6 +14,7 @@ import traceback
 sel = selectors.DefaultSelector()
 IP = "127.0.0.1"
 PORT = 1234
+ServerName = "AfzalChrisCammy Server"
 
 daemon_threads = True
 allow_reuse_address = True
@@ -139,7 +140,6 @@ def handling(command, arguments, key, mask):
     print("Arguments is " + arguments)
     print("Commands is " + command)
     print("~~~~~~~~~~~~~~~~~~~~~~")
-    print(arguments)
     # recieve nickname from HexChat Client and set in Client class instance in server client list
     if command.upper() == "NICK":
         print("NICKNAME COMMAND")
@@ -160,13 +160,10 @@ def handling(command, arguments, key, mask):
                 assignedNick = clients[listeningSocket][count].nickname
                 currRealName = clients[listeningSocket][count].realname
                 print("NICKNAME ASSIGNED IS: " + assignedNick)
-                temp2.socket.send(bytes(":USER "+ assignedNick + " " + assignedNick+ " localhost :"+"\n", "UTF-8"))
-                temp2.socket.send(bytes(":127.0.0.1 001 "+ assignedNick + ":Hi, welcome to IRC \n", "UTF-8"))
-                temp2.socket.send(bytes(":127.0.0.1 002 "+ assignedNick + ":Your host is AfzalChrisCammy Server, running version 4 \n", "UTF-8"))
-                temp2.socket.send(bytes(":127.0.0.1 251 "+ assignedNick + ":There are 1 users and 0 services on 1 server \n", "UTF-8"))
-                temp2.socket.send(bytes(":127.0.0.1 422 "+ assignedNick + ":MOTD File is missing \n", "UTF-8"))
+
                 print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
                 break
+            
             else:
                 count += 1
     # recieve username from HexChat Client and set in Client class instance in server client list
@@ -186,7 +183,12 @@ def handling(command, arguments, key, mask):
             if currSock == temp2.socket:    #only works for first connection
                 print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
                 clients[listeningSocket][count].setUser(arguments)
+                assignedNick = clients[listeningSocket][count].nickname
                 print("USERNAME ASSIGNED IS: " + clients[listeningSocket][count].user)
+                temp2.socket.send(bytes(":127.0.0.1 001 "+ assignedNick + " :Hi, welcome to IRC \n", "UTF-8"))
+                temp2.socket.send(bytes(":127.0.0.1 002 "+ assignedNick + " :Your host is " +servername+", running version 4 \n", "UTF-8"))
+                temp2.socket.send(bytes(":127.0.0.1 251 "+ assignedNick + " :There are 1 users and 0 services on 1 server \n", "UTF-8"))
+                temp2.socket.send(bytes(":127.0.0.1 422 "+ assignedNick + " :MOTD File is missing \n", "UTF-8"))
                 print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
                 break
             else:
@@ -221,12 +223,43 @@ def handling(command, arguments, key, mask):
 
                 if currSock == temp2.socket:    #only works for first connection
                     temp2.joinChannel(arguments)
+                    #temp2.socket.send(bytes(":127.0.0.1 331 "+ assignedNick + " :MOTD File is missing \n", "UTF-8"))
                     print("JOINED SUCCESS")
                 else:
                     count += 1
         else:
             print("invalid channel format")
-    ######## Handle PING PONG 
+    if command.upper() == "MODE":
+        print("received mode but doing nothing with it")
+    if command.upper() == "WHO":
+        print("received who but doing nothing with it")
+    if command.upper() == "PING":
+        print("received ping, replying pong")
+        count = 0
+        for target in clients[listeningSocket]:
+            for key, value in clients.items():
+                print(key, value)   #DICTIONARY ITEMS(KEY AND ALL ITS VALUES
+            print(target)           #server socket
+            print(currSock)         #client socket
+            temp = clients[listeningSocket] #list from key
+            print(temp)             #prints client list
+            temp2 = temp[count]
+            print(temp2.socket)     #client socket in dictionary
+
+            if currSock == temp2.socket:    #only works for first connection
+                print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+                #clients[listeningSocket][count].setUser(arguments)
+                #assignedNick = clients[listeningSocket][count].nickname
+                #print("USERNAME ASSIGNED IS: " + clients[listeningSocket][count].user)
+                temp2.socket.send(bytes(":"+ servername +" PONG "+ servername + " :" +arguments+ "\n", "UTF-8"))
+                print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+                break
+            else:
+                count += 1
+    
+        
+        
+    ######## Handle priv message, part, private message
     if command.upper() == "PRVMSG":
         print("DO MESSAGE SENDING HERE")
     else:
@@ -278,12 +311,17 @@ def service_connection(key, mask):
         if recv_data:
             # append any data that is read into recv_data to data.outb so it can be sent later
             data.outb += recv_data
-            print(data.outb.decode("utf-8"))
+            #print(data.outb.decode("utf-8"))
             #take recieved data and isolate into command and arguments
-            command, arguments = parse(recv_data.decode("utf-8"))
-
-            #run handler on command and arguments
-            handling(command, arguments[0], key, mask)
+            line=(recv_data.decode("utf-8")).split("\n")
+            for x in line: 
+                if x:
+                    print("the line to be proceesed is: "+ x)
+                    command, arguments = parse(x)
+                #run handler on command and arguments
+                    handling(command, arguments[0], key, mask)
+                else:
+                    break
 
             message = data.outb.decode("utf-8")
             print(message)
@@ -301,14 +339,14 @@ def service_connection(key, mask):
             sock.close()
 
     # if socket is ready for writing then this is true
-    if mask & selectors.EVENT_WRITE:
+    #if mask & selectors.EVENT_WRITE:
         # if has received data from socket
-        if data.outb:
+        #if data.outb:
             #command, arguments = parse(data.outb.decode("utf-8"))
 
             # handling(command, arguments[0], key, mask)
             # send data out to clients
-            print("echoing", repr(data.outb), "to", data.addr)
+            #print("echoing", repr(data.outb), "to", data.addr)
 
             # if read startswith @:
                 # isolate nickname message is targetting
@@ -319,8 +357,8 @@ def service_connection(key, mask):
                         # send message only to targettedUser
 
             # loop through sockets and send
-            sent = sock.send(data.outb)     # should be ready to write
-            data.outb = data.outb[sent:]
+            #sent = sock.send(data.outb)     # should be ready to write
+            #data.outb = data.outb[sent:]
 
 
 
