@@ -17,8 +17,8 @@ port = 6667
 channel = "#test" # channel to join
 uname = "ProBot" # the bot name
 client_socket.connect((server, port)) # Here we connect to the server using the port 6667
-client_socket.send(bytes("USER "+ uname +" "+ uname +" "+ uname + " " + uname + "\n", "UTF-8")) # user information
 client_socket.send(bytes("NICK "+ uname +"\n", "UTF-8")) # assign the nick to the bot
+client_socket.send(bytes("USER "+ uname +" "+ uname +" "+ uname + " " + uname + "\n", "UTF-8")) # user information
 def joinchan(chan): # join channel(s).
   client_socket.send(bytes("JOIN "+ chan +"\n", "UTF-8")) 
   ircmsg = "" #a variable to output the server's initial data spew
@@ -44,10 +44,11 @@ def main():
       splitmsg = ircmsg.split(':') #splits message into parts that will be parsed to form a response
       message = splitmsg[2]
       if message.__contains__('!'): #checks if there is a command in a channel message
-        command = message.split('!')
-        command = command[1].split(' ')[0]
-        print("Command word is " + command[1])
-        reply(command[1]) #responds to the command if it is valid
+        print("the full command is :" +message)
+        command = message[1:]
+        command = command.split(' ')[0]
+        print("Command word is " + command)
+        reply(command) #responds to the command if it is valid
       if (uname in splitmsg[1]): #when the bot recieves a direct message
         print("I've been messaged!")
         recipientName = str(splitmsg[1].split('!')[0])
