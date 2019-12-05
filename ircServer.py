@@ -236,17 +236,10 @@ def handling(command, arguments, key, mask):
         count = 0
         for target in clients[listeningSocket]:
             temp = clients[listeningSocket] #list from key
-           # print(temp)             #prints client list
             temp2 = temp[count]
-            #print(temp2.socket)     #client socket in dictionary
 
             if currSock == temp2.socket:    #only works for first connection
-                #print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-                #clients[listeningSocket][count].setUser(arguments)
-                #assignedNick = clients[listeningSocket][count].nickname
-                #print("USERNAME ASSIGNED IS: " + clients[listeningSocket][count].user)
                 temp2.socket.send(bytes(":"+ servername +" PONG "+ servername + " :" +arguments+ "\n", "UTF-8"))
-                #print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
                 break
             else:
                 count += 1
@@ -276,6 +269,27 @@ def handling(command, arguments, key, mask):
         if destination.startswith("#"):
             #send to channel
             print("send to channel")
+            dataToSend = (bytes(":"+senderName+"!"+ senderName + "@"+ IP +" PRIVMSG "+ destination +":"+ messageText +"\n", "UTF-8"))
+            #targetUser = destination
+            count = 0
+            for target in clients[listeningSocket]:
+                temp = clients[listeningSocket] #list from key
+            # print(temp)             #prints client list
+                clientToCheck = temp[count]
+                #print(temp2.socket)     #client socket in dictionary
+                #print("ZZZZZZZZZZZZZ")
+                #targetUser = targetUser.strip()
+                print(clientToCheck.channels)
+                print("keys below")
+                print(clientToCheck.channels.keys())
+                for key in clientToCheck.channels.keys():
+                    if key.find(destination):
+                        if clientToCheck.nickname == senderName:
+                            break
+                        print("client is in channel")
+                        clientToCheck.socket.send(dataToSend)
+                        
+                count += 1
         else:
             #send to ind
             
