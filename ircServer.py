@@ -234,34 +234,34 @@ def handling(command, arguments, key, mask):
     if command.upper() == "WHO":
         print("received who but doing nothing with it")
     if command.upper() == "PING":
-        print("received ping, replying pong")
+        #print("received ping, replying pong")
         count = 0
         for target in clients[listeningSocket]:
-            for key, value in clients.items():
-                print(key, value)   #DICTIONARY ITEMS(KEY AND ALL ITS VALUES
-            print(target)           #server socket
-            print(currSock)         #client socket
+            #for key, value in clients.items():
+                #print(key, value)   #DICTIONARY ITEMS(KEY AND ALL ITS VALUES
+            #print(target)           #server socket
+            #print(currSock)         #client socket
             temp = clients[listeningSocket] #list from key
-            print(temp)             #prints client list
+           # print(temp)             #prints client list
             temp2 = temp[count]
-            print(temp2.socket)     #client socket in dictionary
+            #print(temp2.socket)     #client socket in dictionary
 
             if currSock == temp2.socket:    #only works for first connection
-                print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+                #print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
                 #clients[listeningSocket][count].setUser(arguments)
                 #assignedNick = clients[listeningSocket][count].nickname
                 #print("USERNAME ASSIGNED IS: " + clients[listeningSocket][count].user)
                 temp2.socket.send(bytes(":"+ servername +" PONG "+ servername + " :" +arguments+ "\n", "UTF-8"))
-                print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+                #print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
                 break
             else:
                 count += 1
-    
+    if command.upper() == "PRVMSG":
+        print("DO MESSAGE SENDING HERE")
         
         
     ######## Handle priv message, part, private message
-    if command.upper() == "PRVMSG":
-        print("DO MESSAGE SENDING HERE")
+    
     else:
         print("command not captured. Command is : " + command.upper())
 
