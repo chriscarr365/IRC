@@ -256,10 +256,10 @@ def handling(command, arguments, key, mask):
                 break
             else:
                 count += 1
-    if command.upper() == "PRVMSG":
+    if command.upper() == "PRIVMSG":
         print("DO MESSAGE SENDING HERE")
-        
-        
+        messageContent= arguments
+        print(messageContent)
     ######## Handle priv message, part, private message
     
     else:
@@ -269,6 +269,11 @@ def parse(input):
     temp = input.split()
     arguments = temp[1:]
     command = temp[0]
+    if (command == "PRIVMSG"):
+        temp = input
+        arguments = temp.split(" ", 1)
+        temp = arguments[1]
+        arguments = temp
     return command, arguments
 
 
@@ -319,7 +324,10 @@ def service_connection(key, mask):
                     print("the line to be proceesed is: "+ x)
                     command, arguments = parse(x)
                 #run handler on command and arguments
-                    handling(command, arguments[0], key, mask)
+                    if command == "PRIVMSG":
+                        handling(command, arguments, key, mask)
+                    else:
+                        handling(command, arguments[0], key, mask)
                 else:
                     break
 
