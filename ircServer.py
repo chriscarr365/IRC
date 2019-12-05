@@ -256,16 +256,20 @@ def handling(command, arguments, key, mask):
         count = 0
         for target in clients[listeningSocket]:
             temp = clients[listeningSocket] #list from key
-           #print(temp)             #prints client list
+            print("################################")
+            print(temp)             #prints client list
             temp2 = temp[count]
-            #print(temp2.socket)     #client socket in dictionary
+            print(temp2.nickname)     #client socket in dictionary
+            print("###############################")
             if currSock == temp2.socket:    #only works for first connection
-                senderName = temp2.getNickname()
+                print("~~~~~~~~~~~~~~~~~~~~")
+                senderName = temp2.nickname
+                print(senderName)
+                print("~~~~~~~~~~~~~~~~~~~~")
                 break
             else:
                 count += 1
             
-            count = 0
         destination = messageContent[0]
         messageText = messageContent[1]
         #print("the target is : "+target+" and the text is : "+ messageText)
@@ -280,15 +284,19 @@ def handling(command, arguments, key, mask):
             for target in clients[listeningSocket]:
                 temp = clients[listeningSocket] #list from key
             # print(temp)             #prints client list
-                temp2 = temp[count]
+                socketTosend = temp[count]
                 #print(temp2.socket)     #client socket in dictionary
-
-                if targetUser == temp2.nickname:    #only works for first connection
+                print("ZZZZZZZZZZZZZ")
+                targetUser = targetUser.strip()
+                print(targetUser)
+                print(socketTosend.nickname)
+                print("ZZZZZZZZZZZZZ")
+                if targetUser == socketTosend.nickname:    #only works for first connection
                     print("found user to send info to")
                     #clients[listeningSocket][count].setUser(arguments)
                     #assignedNick = clients[listeningSocket][count].nickname
                     #print("USERNAME ASSIGNED IS: " + clients[listeningSocket][count].user)
-                    temp2.socket.send(bytes(":"+targetUser+"!"+ targetUser+ "@"+ IP +" PRIVMSG "+ targetUser +" :"+ messageText +"\n", "UTF-8"))
+                    socketTosend.socket.send(bytes(":"+senderName+"!"+ senderName + "@"+ IP +" PRIVMSG "+ targetUser +" :"+ messageText +"\n", "UTF-8"))
                     #print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
                     break
                 else:
