@@ -157,7 +157,14 @@ def handling(command, arguments, key, mask):
             if currSock == temp2.socket:        #only works for first connection
                 print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
                 clients[listeningSocket][count].setNickname(arguments)
-                print("NICKNAME ASSIGNED IS: " + clients[listeningSocket][count].nickname)
+                assignedNick = clients[listeningSocket][count].nickname
+                currRealName = clients[listeningSocket][count].realname
+                print("NICKNAME ASSIGNED IS: " + assignedNick)
+                temp2.socket.send(bytes(":USER "+ assignedNick + " " + assignedNick+ " localhost :"+"\n", "UTF-8"))
+                temp2.socket.send(bytes(":127.0.0.1 001 "+ assignedNick + ":Hi, welcome to IRC \n", "UTF-8"))
+                temp2.socket.send(bytes(":127.0.0.1 002 "+ assignedNick + ":Your host is AfzalChrisCammy Server, running version 4 \n", "UTF-8"))
+                temp2.socket.send(bytes(":127.0.0.1 251 "+ assignedNick + ":There are 1 users and 0 services on 1 server \n", "UTF-8"))
+                temp2.socket.send(bytes(":127.0.0.1 422 "+ assignedNick + ":MOTD File is missing \n", "UTF-8"))
                 print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
                 break
             else:
@@ -219,10 +226,11 @@ def handling(command, arguments, key, mask):
                     count += 1
         else:
             print("invalid channel format")
+    ######## Handle PING PONG 
     if command.upper() == "PRVMSG":
         print("DO MESSAGE SENDING HERE")
     else:
-        print("random")
+        print("command not captured. Command is : " + command.upper())
 
 def parse(input):
     temp = input.split()
