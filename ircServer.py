@@ -12,7 +12,7 @@ import types
 import traceback
 
 sel = selectors.DefaultSelector()
-IP = "127.0.0.1"
+IP = "10.0.42.17"
 PORT = 6667
 ServerName = "AfzalChrisCammy Server"
 
@@ -22,7 +22,7 @@ clients = {
 }
 channels = {}
 
-servername = "127.0.0.1/6667"
+servername = "10.0.42.17/6667"
 
 
 
