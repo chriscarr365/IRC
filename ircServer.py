@@ -79,12 +79,16 @@ class client(object):
 
         # send the join channel message to all in channel, including self
         response_join_channel = ':%s JOIN :%s\r\n' % (self.getIdentity(), channelname)
+        #updateList = response_join_channel
+
         for client in chnl.clients:
             client.writebuffer += response_join_channel
 
         nicks = [client.nickname for client in chnl.clients]
 
         response_join_channel = ':%s 353 %s = %s :%s\r\n' % (servername, self.nickname, chnl.name, ' '.join(nicks))
+        updateList = response_join_channel
+
         self.writebuffer += response_join_channel
 
         response_join_channel = ':%s 366 %s %s: End of /NAMES list\r\n' % (servername, self.nickname, chnl.name)
@@ -92,12 +96,19 @@ class client(object):
         print(self.writebuffer)
         self.socket.send(self.writebuffer.encode())
 
-        #send_to_client(self.writebuffer, key=self.server.get_key())
-        #stringToSend()
-        #key.fileobj.send(":test!tester@127.0.0.1 JOIN #test\n".encode())
-        #self.socket.send(self.writebuffer)
+        currSock = self.getSocket()
 
-        #self.socket.send(":self.nickname!self.user@IP JOIN #channelname".encode())
+        count = 0
+        for target in clients[listeningSocket]:
+            temp = clients[listeningSocket]  # list from key
+            clientToCheck = temp[count]
+
+            for key in clientToCheck.channels.keys():
+                if key.find(channelname):
+                    print("Updating Channel Clients List on all Clients")
+                    clientToCheck.socket.send(updateList.encode(("utf-8")))     #only updates list for those who join channel manually, but not those who join on loadup through window
+
+            count += 1
 
         self.writebuffer = ""
 
@@ -231,6 +242,8 @@ def handling(command, arguments, key, mask):
         print("received mode but doing nothing with it")
     if command.upper() == "WHO":
         print("received who but doing nothing with it")
+    if command.upper() == "QUIT":
+        print("f")
     if command.upper() == "PING":
         #print("received ping, replying pong")
         count = 0
